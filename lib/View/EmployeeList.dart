@@ -24,7 +24,7 @@ class EmployeeList extends StatefulWidget {
 }
 
 class _EmployeeListState extends State<EmployeeList> {
-  EmployeeListController _controller = Get.put(EmployeeListController());
+  // EmployeeListController _controller = Get.put(EmployeeListController());
   AllCheckinEmployeeidController _checkinController =
   Get.put(AllCheckinEmployeeidController());
   TextEditingController _searchController = TextEditingController();
@@ -140,39 +140,40 @@ class _EmployeeListState extends State<EmployeeList> {
     }
   }
 
-  fetchdata() async {
-   await _controller.firstLoad();
-  }
+  // fetchdata() async {
+  //  await _controller.firstLoad();
+  // }
 
   @override
   void initState() {
     super.initState();
-    fetchdata();
+    // fetchdata();
     // _controller.firstLoad(false, _searchController.text);
-    _scrollController = ScrollController()..addListener(_controller.loadMore);
+    _firstLoad(false, _searchController.text);
+    _scrollController = ScrollController()..addListener(_loadMore);
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_controller.loadMore);
+    _scrollController.removeListener(_loadMore);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    print("sssss - ${_controller.posts.obs.value}");
+    // print("sssss - ${_controller.posts.obs.value}");
 
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.deepOrangeAccent,
           title: Text('Employee List'),
           actions: [
-            IconButton(icon: Icon(Icons.sort_rounded), onPressed: () => _controller.firstLoad())
+            // IconButton(icon: Icon(Icons.sort_rounded), onPressed: () => _controller.firstLoad())
 
-            // IconButton(icon: Icon(Icons.sort_rounded), onPressed: () => _firstLoad(true, _searchController.text))
+            IconButton(icon: Icon(Icons.sort_rounded), onPressed: () => _firstLoad(true, _searchController.text))
           ],
         ),
-        body: _controller.isFirstLoadRunning.value
+        body: _isFirstLoadRunning
             ? Center(
                 child: CircularProgressIndicator(),
               )
@@ -187,8 +188,8 @@ class _EmployeeListState extends State<EmployeeList> {
                         onSubmitted: (text)  {
                           print("This is searched text : $text");
                           print("This is searched text Controller : ${_searchController.text}");
-                           // _firstLoad(false, _searchController.text);
-                          _controller.firstLoad();
+                           _firstLoad(false, _searchController.text);
+                          // _controller.firstLoad();
                         },
                         decoration: InputDecoration(
                             filled: true,
@@ -211,33 +212,53 @@ class _EmployeeListState extends State<EmployeeList> {
                       ),
                     ),
                   ),
-                  Obx(
-                     () {
-                      return Expanded(
-                        child: ListView.builder(
-                          controller: _controller.scrollController,
-                          itemCount: _controller.posts.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return GestureDetector(
-                                child: ListItem(
-                            title: _controller.posts[index].name,
-                            image: _controller.posts[index].avatar,
-                            subTitle: _controller.posts[index].country,
-                          ),
-                                onTap: () async {
-                                  await _checkinController.fetchEmployeeCheckinDetails(_controller.posts[index].id);
-                                  Navigator.pushNamed(context, ProfileTabScreen.tag, arguments: _controller.posts[index]);
-                                  // Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileTabScreen(profileModel: _posts[index],)));
-                                },
-                              );
-                          },
-                        ),
-                      );
-                    }
-                  ),
+        Expanded(
+          child: ListView.builder(
+            controller: _scrollController,
+            itemCount: _posts.length,
+            itemBuilder: (BuildContext context, int index) {
+              return GestureDetector(
+                child: ListItem(
+                  title: _posts[index].name,
+                  image: _posts[index].avatar,
+                  subTitle: _posts[index].country,
+                ),
+                onTap: () async {
+                  await _checkinController.fetchEmployeeCheckinDetails(_posts[index].id);
+                  Navigator.pushNamed(context, ProfileTabScreen.tag, arguments: _posts[index]);
+                  // Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileTabScreen(profileModel: _posts[index],)));
+                },
+              );
+            },
+          ),
+        ),
+                  // Obx(
+                  //    () {
+                  //     return Expanded(
+                  //       child: ListView.builder(
+                  //         controller: _scrollController,
+                  //         itemCount: _posts.length,
+                  //         itemBuilder: (BuildContext context, int index) {
+                  //           return GestureDetector(
+                  //               child: ListItem(
+                  //           title: _posts[index].name,
+                  //           image: _posts[index].avatar,
+                  //           subTitle: _posts[index].country,
+                  //         ),
+                  //               onTap: () async {
+                  //                 await _checkinController.fetchEmployeeCheckinDetails(_posts[index].id);
+                  //                 Navigator.pushNamed(context, ProfileTabScreen.tag, arguments: _posts[index]);
+                  //                 // Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileTabScreen(profileModel: _posts[index],)));
+                  //               },
+                  //             );
+                  //         },
+                  //       ),
+                  //     );
+                  //   }
+                  // ),
 
                   // when the _loadMore function is running
-                  if (_controller.isLoadMoreRunning.value == true)
+                  if (_isLoadMoreRunning == true)
                     Padding(
                       padding: const EdgeInsets.only(top: 10, bottom: 40),
                       child: Center(
@@ -246,7 +267,7 @@ class _EmployeeListState extends State<EmployeeList> {
                     ),
 
                   // When nothing else to load
-                  if (_controller.hasNextPage.value == false)
+                  if (_hasNextPage == false)
                     Container(
                       padding: const EdgeInsets.only(top: 30, bottom: 40),
                       color: Colors.amber,
